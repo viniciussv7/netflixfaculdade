@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <title>Metflix - Filmes</title>
+
+    <style type="text/css">
+        body {
+            background-color: rgb(0, 0, 0); 
+            margin: 0;     
+            padding: 0;
+        }
+
+        button {    
+            background-color: #ec0909e3;
+            border: none;
+            color: white; 
+            padding: 10px 20px;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px; 
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .top-buttons {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .top-buttons a, .top-buttons button {    
+            background-color: #ec0909e3;
+            border: none;
+            color: white; 
+            padding: 10px 20px;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px; 
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border-radius: 4px;
+            margin: 0 5px;
+        }
+
+        .top-buttons a:hover {
+            transform: scale(1.05); 
+            background-color: #ff0000;
+        }
+
+        button:hover {
+            transform: scale(1.05); 
+            background-color: #ff0000;
+        }
+
+        .logosite{
+            text-align: left;
+            padding-top: 10px;
+            padding-left: 20px;
+        }
+
+        .logosite img {
+            max-width: 150px;
+            height: auto;
+        }
+
+        h2{
+            text-align: center;
+            color: rgb(255, 254, 254);
+            font-family: Arial, Helvetica;
+            margin-bottom: 10px;
+        }
+
+        .lista-filmes {
+            display: flex;
+            justify-content: center; 
+            align-items: center;
+            gap: 50px;
+            padding: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .movie-card {
+            position: relative;
+            width: 200px;
+        }
+
+        .movie-card img {
+            max-width: 200px;
+            height: auto;
+            border-radius: 8px;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .movie-card img:hover {
+            transform: scale(1.1);
+        }
+
+        .favorite-star {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+
+        .favorite-star:hover {
+            background: rgba(0, 0, 0, 0.9);
+        }
+
+        .favorite-star.is-favorited {
+            color: #ffd700;
+        }
+    </style>
+
+    <script>
+        const SALVAR_URL = 'http://localhost/streaming/salvarFavorito.php';
+        const LISTAR_URL = 'http://localhost/streaming/listarFavoritos.php';
+
+        async function loadFavoritesState() {
+            try {
+                const response = await fetch(LISTAR_URL);
+                if (!response.ok) return;
+                const data = await response.json();
+                
+                const favoriteTitles = new Set(data.map(item => item.titulo));
+
+                const favoriteButtons = document.querySelectorAll('.favorite-star');
+                favoriteButtons.forEach(button => {
+                    const movieCard = button.closest('.movie-card');
+                    if (!movieCard) return;
+                    
+                    const title = movieCard.querySelector('img').alt;
+
+                    if (favoriteTitles.has(title)) {
+                        button.textContent = '★'; 
+                        button.classList.add('is-favorited');
+                    } else {
+                        button.textContent = '☆';
+                        button.classList.remove('is-favorited');
+                    }
+                });
+
+            } catch (error) {
+                console.error("Erro ao carregar estado dos favoritos, verifique o XAMPP.");
+            }
+        }
+
+        async function toggleFavoriteOnServer(button) {
+            const movieCard = button.closest('.movie-card');
+            
+            if (!movieCard) {
+                alert("Erro: Estrutura do card do filme inválida.");
+                return;
+            }
+
+            const title = movieCard.querySelector('img').alt;
+            const imageUrl = movieCard.querySelector('img').getAttribute('src'); 
+            
+            if (button.classList.contains('is-favorited')) {
+                alert(`"${title}" já está na sua lista de favoritos.`);
+                return;
+            }
+
+            try {
+                const response = await fetch(SALVAR_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        imageUrl: imageUrl 
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok || response.status === 201) {
+                    alert(result.message); 
+                    button.textContent = '★';
+                    button.classList.add('is-favorited');
+                } else {
+                    alert("Erro ao favoritar: " + result.message);
+                }
+
+            } catch (error) {
+                console.error('Falha na comunicação com o servidor:', error);
+                alert("🚨 Erro de Conexão. O servidor (XAMPP) não está acessível.");
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadFavoritesState();
+
+            const favoriteButtons = document.querySelectorAll('.favorite-star');
+
+            favoriteButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    toggleFavoriteOnServer(button);
+                });
+            });
+        });
+    </script>
+</head>
+
+<body> 
+<br>
+<br>
+
+<div class="top-buttons">
+    <center>
+        <a href="metflix.html"><button>Home</button></a>
+        <a href="filmes.html"><button>Filmes</button></a>
+        <a href="favoritos.html"><button>Favoritos</button></a>
+    </center>
+</div>
+
+
+<div class="logosite">
+    <img src="imagens/logosite.png" alt="Ícone">
+</div>
+
+<div class="secao-filmes">
+    <h2>Sucessos da Bilheteria!</h2> 
+    <div class="lista-filmes acao">
+        
+        <div class="movie-card">
+            <img src="imagens/velozes.webp" alt="Velozes e Furiosos">
+            <button class="favorite-star">☆</button>
+        </div>
+
+        <div class="movie-card">
+            <img src="imagens/jonhwick.webp" alt="John Wick">
+            <button class="favorite-star">☆</button>
+        </div>
+
+        <div class="movie-card">
+            <img src="imagens/mercenarios.jpg" alt="Mercenários">
+            <button class="favorite-star">☆</button>
+        </div>
+
+    </div>
+</div>
+    
+<div class="secao-filmes">
+   
+    <div class="lista-filmes terror">
+        
+        <div class="movie-card">
+            <img src="imagens/sexta13.jpg" alt="Sexta-feira 13">
+            <button class="favorite-star">☆</button>
+        </div>
+        
+        <div class="movie-card">
+            <img src="imagens/pesadelo.jpg" alt="A Hora do Pesadelo">
+            <button class="favorite-star">☆</button>
+        </div>
+        
+        <div class="movie-card">
+            <img src="imagens/panico.jpg" alt="Pânico">
+            <button class="favorite-star">☆</button>
+        </div>
+    </div>
+</div>
+    
+
+<div class="secao-filmes">
+   
+    <div class="lista-filmes Suspense">
+        
+        <div class="movie-card">
+            <img src="imagens/abutre.jpg" alt="Abutre">
+            <button class="favorite-star">☆</button>
+        </div>
+        
+        <div class="movie-card">
+            <img src="imagens/corra.jpg" alt="Corra!">
+            <button class="favorite-star">☆</button>
+        </div>
+        
+        <div class="movie-card">
+            <img src="imagens/parasita.jpg" alt="Parasita">
+            <button class="favorite-star">☆</button>
+        </div>
+    </div>
+</div>
+
+<div class="secao-filmes">
+ 
+    <div class="lista-filmes Romance">
+        
+        <div class="movie-card">
+            <img src="imagens/comoeuera.jpg" alt="Como eu era antes de Você">
+            <button class="favorite-star">☆</button>
+        </div>
+        
+        <div class="movie-card">
+            <img src="imagens/lalaland.jpg" alt="La La Land">
+            <button class="favorite-star">☆</button>
+        </div>
+        
+        <div class="movie-card">
+            <img src="imagens/500dias.jpg" alt="500 Dias Com Ela">
+            <button class="favorite-star">☆</button>
+        </div>
+    </div>
+</div>
+
+<div class="secao-filmes">
+  
+    <div class="lista-filmes anime">
+        
+        <div class="movie-card">
+            <img src="imagens/kimitsu.jpg" alt="Kimetsu no Yaiba">
+            <button class="favorite-star">☆</button>
+        </div>
+        
+        <div class="movie-card">
+            <img src="imagens/denji.jpg" alt="Chainsaw Man">
+            <button class="favorite-star">☆</button>
+        </div>
+        
+        <div class="movie-card">
+            <img src="imagens/hunter.jpg" alt="Hunter x Hunter">
+            <button class="favorite-star">☆</button>
+        </div>
+    </div>
+</div>
+
+<div class="secao-filmes">
+ 
+    <div class="lista-filmes Ficção científica">
+        
+        <div class="movie-card">
+            <img src="imagens/interestellar.jpg" alt="Interestellar">
+            <button class="favorite-star">☆</button>
+        </div>
+        
+        <div class="movie-card">
+            <img src="imagens/matrix.jpg" alt="Matrix">
+            <button class="favorite-star">☆</button>
+        </div>
+        
+        <div class="movie-card">
+            <img src="imagens/starwars.jpg" alt="Star Wars">
+            <button class="favorite-star">☆</button>
+        </div>
+    </div>
+</div>
+
+<div class="secao-filmes">
+   
+    <div class="lista-filmes Comédia">
+        
+        <div class="movie-card">
+            <img src="imagens/todopanico.jpg" alt="Todo Mundo Em Pânico">
+            <button class="favorite-star">☆</button>
+        </div>
+        
+        <div class="movie-card">
+            <img src="imagens/ted.jpg" alt="Ted">
+            <button class="favorite-star">☆</button>
+        </div>
+        
+        <div class="movie-card">
+            <img src="imagens/americanpie.jpg" alt="American Pie">
+            <button class="favorite-star">☆</button>
+        </div>
+    </div>
+</div>
+
+
+</body>
+</html>

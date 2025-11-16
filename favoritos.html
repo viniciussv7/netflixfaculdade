@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <title>Metflix - Favoritos</title>
+
+    <style type="text/css">
+        body {
+            background-color: rgb(0, 0, 0); 
+            margin: 0;     
+            padding: 0;
+        }
+
+        button {    
+            background-color: #ec0909e3;
+            border: none;
+            color: white; 
+            padding: 10px 20px;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px; 
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .top-buttons {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .top-buttons a, .top-buttons button {    
+            background-color: #ec0909e3;
+            border: none;
+            color: white; 
+            padding: 10px 20px;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px; 
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border-radius: 4px;
+            margin: 0 5px;
+        }
+
+        .top-buttons a:hover {
+            transform: scale(1.05); 
+            background-color: #ff0000;
+        }
+
+        button:hover {
+            transform: scale(1.05); 
+            background-color: #ff0000;
+        }
+
+        .logosite{
+            text-align: left;
+            padding-top: 10px;
+            padding-left: 20px;
+        }
+
+        .logosite img {
+            max-width: 150px;
+            height: auto;
+        }
+
+        h2{
+            text-align: center;
+            color: rgb(255, 254, 254);
+            font-family: Arial, Helvetica;
+            margin-bottom: 10px;
+        }
+
+        .lista-filmes {
+            display: flex;
+            justify-content: center; 
+            align-items: center;
+            gap: 50px;
+            padding: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .movie-card {
+            position: relative;
+            width: 200px;
+        }
+
+        .movie-card img {
+            max-width: 200px;
+            height: auto;
+            border-radius: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .movie-card img:hover {
+            transform: scale(1.1);
+        }
+    </style>
+
+</head><body> 
+<br>
+<br>
+
+<div class="top-buttons">
+    <center>
+        <a href="metflix.html"><button>Home</button></a>
+        <a href="filmes.html"><button>Filmes</button></a>
+        <a href="favoritos.html"><button>Favoritos</button></a>
+    </center>
+</div>
+
+
+<div class="logosite">
+    <img src="imagens/logosite.png" alt="Ícone">
+</div>
+
+<div class="secao-filmes">
+    <h2>Meus Filmes Favoritos</h2> 
+    <div id="container-favoritos" class="lista-filmes">
+        </div>
+</div>
+
+
+<script>
+   
+    async function listarFavoritos() {
+        
+        const url = 'http://localhost/streaming/listarFavoritos.php';
+        
+        const container = document.getElementById('container-favoritos');
+
+        if (!container) {
+            console.error("Elemento container-favoritos não encontrado. Verifique o ID no HTML.");
+            return;
+        }
+        
+        container.innerHTML = '<p style="color: white;">Carregando favoritos...</p>';
+        
+        try {
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error(`Erro HTTP: ${response.status} - Falha no servidor.`);
+            }
+
+            const data = await response.json();
+            container.innerHTML = ''; 
+
+            if (data.length === 0) {
+                container.innerHTML = '<p style="color: white;">Você não tem filmes favoritos adicionados. Adicione alguns!</p>';
+            } else {
+                data.forEach(filme => {
+                    const card = document.createElement('div');
+                    card.className = 'movie-card';
+
+        
+                    card.innerHTML = `
+                        <img src="${filme.imagem_Url}" alt="${filme.titulo}">
+                        <p style="color: white; text-align: center; margin-top: 5px;">${filme.titulo}</p>
+                        `;
+                    container.appendChild(card);
+                });
+            }
+            
+        } catch (error) {
+            console.error("Erro fatal ao carregar favoritos:", error);
+            
+         
+            container.innerHTML = '<p style="color: red; font-weight: bold;">[Erro de Conexão] Não foi possível buscar os filmes. Verifique se o XAMPP (Apache e MySQL) está LIGADO.</p>';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', listarFavoritos);
+</script>
+
+</body>
+</html>

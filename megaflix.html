@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metflix - Home</title>
+    <link rel="stylesheet" href="estilo.css">
+</head>
+
+<body> 
+    <div class="top-buttons">
+        <center>
+            <a href="metflix.html"><button>Home</button></a>
+            <a href="filmes.html"><button>Filmes</button></a>
+            <a href="favoritos.html"><button>Favoritos</button></a>
+        </center>
+    </div>
+
+    <div class="logosite">
+        <img src="imagens/logosite.png" alt="Logo Megaflix">
+    </div>
+
+    <div class="secao-filmes">
+        <h2>Bem-vindo ao Metflix!</h2>
+        <p style="color: white; text-align: center; font-size: 18px;">Explore nossos filmes e adicione seus favoritos clicando na estrela.</p>
+    </div>
+
+    <script>
+       
+        const SALVAR_URL = 'http://localhost/streaming/salvarFavorito.php';
+        const LISTAR_URL = 'http://localhost/streaming/listarFavoritos.php';
+
+        async function loadFavoritesState() {
+            try {
+                const response = await fetch(LISTAR_URL);
+                if (!response.ok) return; 
+                const data = await response.json();
+                
+                const favoriteTitles = new Set(data.map(item => item.titulo));
+
+                const favoriteButtons = document.querySelectorAll('.favorite-star');
+                favoriteButtons.forEach(button => {
+                    const movieCard = button.closest('.movie-card');
+                    
+                   
+                    if (!movieCard) return; 
+                    
+                    const title = movieCard.querySelector('img').alt; 
+
+                    if (favoriteTitles.has(title)) {
+                        button.textContent = '★'; 
+                        button.classList.add('is-favorited');
+                    } else {
+                        button.textContent = '☆';
+                        button.classList.remove('is-favorited');
+                    }
+                });
+
+            } catch (error) {
+                console.error("Erro ao carregar estado dos favoritos, verifique o XAMPP.");
+            }
+        }
+
+        async function toggleFavoriteOnServer(button) {
+            const movieCard = button.closest('.movie-card');
+            
+          
+            if (!movieCard) {
+                alert("Erro: Estrutura do card do filme inválida.");
+                return;
+            }
+
+            const title = movieCard.querySelector('img').alt;
+            const imageUrl = movieCard.querySelector('img').getAttribute('src'); 
+            
+        
+            if (button.classList.contains('is-favorited')) {
+                alert(`"${title}" já está na sua lista de favoritos.`);
+                return;
+            }
+
+            try {
+                const response = await fetch(SALVAR_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        imageUrl: imageUrl 
+                    })
+                });
+
+                const result = await response.json();
+
+              
+                if (response.ok || response.status === 201) {
+                    alert(result.message); 
+                    
+                    button.textContent = '★';
+                    button.classList.add('is-favorited');
+                } else {
+                    alert("Erro ao favoritar: " + result.message);
+                }
+
+            } catch (error) {
+                console.error('Falha na comunicação com o servidor:', error);
+                alert("🚨 Erro de Conexão. O servidor (XAMPP) não está acessível.");
+            }
+        }
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadFavoritesState();
+
+            const favoriteButtons = document.querySelectorAll('.favorite-star');
+
+            favoriteButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    toggleFavoriteOnServer(button);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
